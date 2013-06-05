@@ -1,0 +1,59 @@
+package [% package %];
+
+import java.io.Serializable;
+
+import java.net.*;
+import java.io.*;
+import java.util.*;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.type.*;
+import org.codehaus.jackson.*;
+
+import us.kbase.rpc.Caller;
+
+[% IF module_doc -%]
+/**
+[% module_doc %]
+**/
+[% END -%]
+public class [% module %]
+{
+    public Caller caller;
+
+    public [% module %](String url) throws MalformedURLException
+    {
+	caller = new Caller(url);
+    }
+
+[% FOREACH method IN methods %]
+
+[% IF method.doc -%]
+/**
+[% method.doc %]
+**/
+[% END -%]
+    public [% method.return_type %] [% method.name %]([% method.args_decl_string %]) throws Exception
+    {
+	try {
+	    [% method.args_type %] args = new [% method.args_type %]();
+[% FOREACH arg IN method.args -%]
+	    args.[% arg.name %] = [% arg.name %];
+[% END %]
+[% IF method.void -%]
+	    caller.jsonrpc_call("[% method.jsonrpc_call %]", args, null);
+[% ELSE -%]
+	    [% method.json_return_type %] res = caller.jsonrpc_call("[% method.jsonrpc_call %]", args, [% method.json_return_type %].class);
+[% END -%]
+	    return [% method.return_val %];
+	} catch (IOException e) {
+	    System.out.println("Failed with exception: " + e);
+	}
+[% IF !method.void -%]      
+	return null;
+[% END -%]
+    }
+[% END %]
+}
+
+

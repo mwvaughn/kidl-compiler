@@ -1,0 +1,191 @@
+package [% module.impl_package_name %];
+use strict;
+use Bio::KBase::Exceptions;
+# Use Semantic Versioning (2.0.0-rc.1)
+# http://semver.org 
+our $VERSION = "0.1.0";
+
+=head1 NAME
+
+[% module.module_name %]
+
+=head1 DESCRIPTION
+
+[% module.module_doc %]
+
+=cut
+
+#BEGIN_HEADER
+[% module.module_header -%]
+#END_HEADER
+
+sub new
+{
+    my($class, @args) = @_;
+    my $self = {
+    };
+    bless $self, $class;
+    #BEGIN_CONSTRUCTOR
+[% module.module_constructor -%]
+    #END_CONSTRUCTOR
+
+    if ($self->can('_init_instance'))
+    {
+	$self->_init_instance();
+    }
+    return $self;
+}
+
+=head1 METHODS
+
+[% FOREACH method IN module.methods %]
+
+=head2 [% method.name %]
+
+  [% IF method.ret_vars -%][% method.ret_vars -%] = [% END -%]$obj->[% method.name %]([% method.arg_vars %])
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+[% FOREACH docline IN method.arg_doc -%]
+[% docline %]
+[% END %]
+</pre>
+
+=end html
+
+=begin text
+
+[% FOREACH docline IN method.arg_doc -%]
+[% docline %]
+[% END %]
+
+=end text
+
+
+
+=item Description
+
+[% method.doc %]
+
+=back
+
+=cut
+
+sub [% method.name %]
+{
+    my $self = shift;
+[% IF method.arg_count > 0 -%]
+    my([% method.arg_vars %]) = @_;
+
+    my @_bad_arguments;
+[% FOR param IN method.params -%]
+    ([% param.validator %]) or push(@_bad_arguments, "Invalid type for argument \"[% param.name %]\" (value was \"[% param.perl_var %]\")");
+[% END -%]
+    if (@_bad_arguments) {
+	my $msg = "Invalid arguments passed to [% method.name %]:\n" . join("", map { "\t$_\n" } @_bad_arguments);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => '[% method.name %]');
+    }
+[% END -%]
+
+    my $ctx = $[% server_package_name %]::CallContext;
+[% IF method.ret_count > 0 -%]
+    my([% method.ret_vars %]);
+[% END -%]
+    #BEGIN [% method.name %]
+[% method.user_code -%]
+    #END [% method.name %]
+[% IF method.ret_count > 0 -%]
+    my @_bad_returns;
+[% FOR return IN method.returns -%]
+    ([% return.validator %]) or push(@_bad_returns, "Invalid type for return variable \"[% return.name %]\" (value was \"[% return.perl_var %]\")");
+[% END -%]
+    if (@_bad_returns) {
+	my $msg = "Invalid returns passed to [% method.name %]:\n" . join("", map { "\t$_\n" } @_bad_returns);
+	Bio::KBase::Exceptions::ArgumentValidationError->throw(error => $msg,
+							       method_name => '[% method.name %]');
+    }
+[% END -%]
+    return([% method.ret_vars %]);
+}
+
+
+[% END %]
+
+=head2 version 
+
+  $return = $obj->version()
+
+=over 4
+
+=item Parameter and return types
+
+=begin html
+
+<pre>
+$return is a string
+</pre>
+
+=end html
+
+=begin text
+
+$return is a string
+
+=end text
+
+=item Description
+
+Return the module version. This is a Semantic Versioning number.
+
+=back
+
+=cut
+
+sub version {
+    return $VERSION;
+}
+
+=head1 TYPES
+
+[% FOREACH type IN module.types %]
+
+=head2 [% type.name %]
+
+=over 4
+
+[% IF type.comment %]
+
+=item Description
+
+[% type.comment %]
+[% END %]
+
+=item Definition
+
+=begin html
+
+<pre>
+[% type.english %]
+</pre>
+
+=end html
+
+=begin text
+
+[% type.english %]
+
+=end text
+
+=back
+
+[% END %]
+
+=cut
+
+1;

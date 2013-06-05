@@ -1,0 +1,52 @@
+
+1.  perl Makefile.PL
+2.  make
+3.  make test
+4.  make install
+
+You will need administrative privileges to install
+in the default location. See the documentation on
+Module::Build to specificy an alternative location.
+
+DEPENDANCIES
+
+The recommended method of installation is using cpan.
+However, if you are installing from the tar ball, you might
+have to install some prerequisites. When you run
+perl Makefile.PL, watch for someting similar to this:
+
+Warning: prerequisite File::Spec 3.33 not found. We have 3.3101.
+Warning: prerequisite Lingua::EN::Inflect 1.895 not found.
+Warning: prerequisite Moose 2.0604 not found. We have 2.0200.
+Warning: prerequisite Parse::Yapp::Driver 1.05 not found.
+Warning: prerequisite Template 2.24 not found. We have 2.22.
+
+Each of these can be addressed by using cpan
+
+> cpan install File::Spec
+> cpan install Lingua::EN::Inflect
+> cpan install Moose
+> cpan install Parse::Yapp::Driver
+> cpan install Template
+
+
+
+TESTING:
+
+For now, testing involves running the compiler
+on a Interface Description Document (IDD). An IDD
+is provided in the dist/t directory. Assuming
+the compiler is installed in /usr/local/bin you
+can run a simple test manually like this:
+
+/usr/local/bin/compile_typespec.pl 
+
+NON STANDARD INSTALLATION LOCATION (Untested at this
+time)
+
+1.  perl Makefile.PL BASE_DIR=/var/tmp/local
+2.  make
+3.  make test
+4.  make install
+
+

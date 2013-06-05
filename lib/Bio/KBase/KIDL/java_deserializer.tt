@@ -1,0 +1,34 @@
+package [% package %];
+
+import java.io.*;
+import java.util.*;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.type.*;
+import org.codehaus.jackson.*;
+
+[% SET tname = tuple.name -%]
+[% SET ser_helper = "${tuple.name}_serializer" -%]
+[% SET deser_helper = "${tuple.name}_deserializer" -%]
+
+public class [% deser_helper %] extends JsonDeserializer<[% tname %]>
+{
+    public [% tname %] deserialize(JsonParser p, DeserializationContext ctx)
+	throws IOException, JsonProcessingException
+    {
+	[% tname %] res = new [% tname %]();
+	if (!p.isExpectedStartArrayToken())
+	{
+		System.out.println("Bad parse in [% deser_helper %]: " + p.getCurrentToken());
+		return null;
+	}
+	p.nextToken();
+[% FOREACH elt IN tuple.elements -%]
+	res.[% elt.name %] = p.readValueAs([% elt.java_class %]);
+[% END -%]
+	JsonToken t = p.nextToken();
+//	System.out.println("exit [% deser_helper %] with token " + t);
+
+	return res;
+    }
+}

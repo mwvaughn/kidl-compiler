@@ -1,0 +1,25 @@
+package [% package %];
+
+import java.io.*;
+import java.util.*;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.type.*;
+import org.codehaus.jackson.*;
+
+[% SET tname = tuple.name -%]
+[% SET ser_helper = "${tuple.name}_serializer" -%]
+[% SET deser_helper = "${tuple.name}_deserializer" -%]
+
+public class [% ser_helper %] extends JsonSerializer<[% tname %]>
+{
+    public void serialize([% tname %] value, JsonGenerator jgen, SerializerProvider provider)
+	throws IOException, JsonProcessingException
+    {
+	jgen.writeStartArray();
+[% FOREACH elt IN tuple.elements -%]
+	jgen.writeObject(value.[% elt.name %]);
+[% END -%]
+	jgen.writeEndArray();
+    }
+}

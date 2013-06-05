@@ -1,0 +1,34 @@
+use strict;
+use [% client_package_name %];
+use Getopt::Long;
+use JSON;
+
+my $url;
+my $port;
+
+my $usage = "Usage: [% method.name %] [--port port] [--url url][% FOR p IN method.params %] [% p.name %][% END %]\n";
+
+my $rc = GetOptions("port=s" => \$port,
+		    "url=s"  => \$url,
+		    );
+if (!$rc || @ARGV != [% method.arg_count %])
+{
+    die $usage;
+}
+
+if (!$url)
+{
+    if ($port)
+    {
+	$url = "http://localhost:$port/";
+    }
+    else
+    {
+	die "No URL or port specified\n";
+    }
+}
+my $client = [% client_package_name %]->new($url);
+
+my @output = $client->[% method.name %](@ARGV);
+
+print to_json(\@output) . "\n";

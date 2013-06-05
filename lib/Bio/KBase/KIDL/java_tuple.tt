@@ -1,0 +1,28 @@
+package [% package %];
+
+import java.io.*;
+import java.util.*;
+import org.codehaus.jackson.map.*;
+import org.codehaus.jackson.map.annotate.*;
+import org.codehaus.jackson.type.*;
+import org.codehaus.jackson.*;
+
+[% SET tname = tuple.name -%]
+[% SET ser_helper = "${tuple.name}_serializer" -%]
+[% SET deser_helper = "${tuple.name}_deserializer" -%]
+
+[% IF tuple.comment %]
+/**
+[% tuple.comment %]
+**/
+[% END %]
+@JsonSerialize(using = [% ser_helper %].class)
+@JsonDeserialize(using = [% deser_helper %].class)
+public class [% tname %]
+{
+[% FOREACH elt IN tuple.elements -%]
+    public [% elt.java_type %] [% elt.name %];
+[% END -%]
+}
+
+

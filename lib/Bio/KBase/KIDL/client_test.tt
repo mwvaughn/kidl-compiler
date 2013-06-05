@@ -1,0 +1,79 @@
+use strict;
+use warnings;
+
+use Test::More;
+use Data::Dumper;
+
+use [% client_package_name %];
+
+# Start a server on localhost
+my ($pid, $url) = Server::start('[% psgi_file %]');
+my $obj;
+
+#  Test 1 - Can a new object be created without parameters? 
+$obj = [% client_package_name %]->new();
+ok( defined $obj, "Did an object get defined" );               
+
+#  Test 2 - Is the object in the right class?
+isa_ok( $obj, '[% client_package_name %]', "Is it in the right class" );   
+
+#  Test 3 - Can the object do all of the annotation related
+#           methods that take genomeTO and returns genomeTO
+my @methods = qw(
+[% FOREACH module IN modules -%]
+[% FOREACH method IN module.methods -%]
+    [% method.name %]
+[% END -%]
+[% END -%]
+);
+can_ok($obj, @methods);    
+
+#  Test 4 - Can a new object be created with valid parameter? 
+my $server = [% client_package_name %]->new($url);
+ok( defined $server, "Did an object get defined" );               
+
+#  Test 5 - Is the object in the right class?
+isa_ok( $server, '[% client_package_name %]', "Is it in the right class" );   
+
+done_testing();
+Server::stop($pid);
+ 
+# Helper package Server
+package Server;
+use Plack::Runner;
+use IO::Socket::INET;
+
+sub start {
+  my $psgi_file = shift;
+  -f $psgi_file or die "Cannot find psgi file $psgi_file\n";
+
+  # Find an unused port.
+  my $port;
+  {
+     my $sock = IO::Socket::INET->new('LocalPort' => 0);
+     $sock->listen;
+     $port = $sock->sockport;
+     $sock->close();
+  }
+
+  # Fork and create service.
+  my $child_pid = fork;
+  if ($child_pid == 0)
+  {
+     open STDOUT, "/dev/null";
+     open STDERR, "/dev/null";
+     my $runner = Plack::Runner->new();
+     $runner->parse_options("--listen", "0:$port");
+     $runner->run($psgi_file);
+     exit;
+  }
+
+  # Wait for server to start.
+  sleep 5;
+  return ($child_pid, "http://localhost:$port");
+}
+
+sub stop {
+  my($child_pid, $url) = shift;
+  kill 1, $child_pid;
+}
